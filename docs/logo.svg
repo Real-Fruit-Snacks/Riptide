@@ -5,5 +5,5 @@
       <stop offset="100%" style="stop-color:#a6e3a1"/>
     </linearGradient>
   </defs>
-  <text x="0" y="62" font-family="JetBrains Mono, Fira Code, Consolas, monospace" font-size="64" font-weight="700" fill="url(#grad)">Riptide</text>
+  <text x="240" y="62" text-anchor="middle" font-family="JetBrains Mono, Fira Code, Consolas, monospace" font-size="64" font-weight="700" fill="url(#grad)">Riptide</text>
 </svg>
