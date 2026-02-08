@@ -1,6 +1,9 @@
-# Riptide
-
-**Collaborative terminal + playbook workspace for penetration testing engagements**
+<p align="center">
+  <img src="docs/logo.svg" alt="Riptide" width="480">
+</p>
+<p align="center">
+  <strong>Collaborative terminal + playbook workspace for penetration testing engagements</strong>
+</p>
 
 Riptide is a browser-based platform that combines a persistent PTY terminal with stackable markdown playbooks, real-time multi-user collaboration, and structured data management — all designed for offensive security workflows. Think of it as a shared war room where your team runs commands, documents findings, and manages credentials in one place.
 
