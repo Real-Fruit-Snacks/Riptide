@@ -21,7 +21,7 @@ A full xterm.js terminal on the right, stackable markdown note sections on the l
 Password-protected rooms with WebSocket sync. Multiple users see each other's presence, get live updates on notes/credentials/variables, and edit locks prevent conflicts. Late-joining users see buffered terminal output (up to 256KB per PTY).
 
 **Playbook Library**
-Browse, search, and import from a curated collection of methodology playbooks organized by category and tags. Build your own library of reusable engagement templates.
+Build your own library of reusable playbooks organized by category and tags. Search, import into rooms, customize, and share across engagements.
 
 **Variable Substitution**
 Use `<TargetIP>`, `<Domain>`, or any custom variable in code blocks. Riptide scans your playbooks, renders input fields, and substitutes values at runtime. Variables support tab (per-target) and global (room-wide) scope — tab always overrides global.
@@ -105,7 +105,7 @@ riptide/
 │   ├── recordings.js      # Terminal session recording
 │   ├── audit.js           # Audit log
 │   └── session.js         # Session reset, cleanup
-├── playbooks/             # Built-in playbook library (.md files)
+├── playbooks/             # User playbook library (.md files)
 ├── public/
 │   ├── css/
 │   │   ├── theme.css      # Catppuccin theme definitions (4 flavors)
@@ -177,7 +177,7 @@ No build step. No bundler. No framework. Just modules.
 | Markdown playbooks | Stackable sections with Run buttons on code blocks |
 | Run All | Execute every code block in a playbook sequentially |
 | Output capture | Grab terminal output and save it back into your notes |
-| Playbook library | Browse/search/import from categorized templates |
+| Playbook library | Build, browse, search, and import your own templates |
 | Variable system | `<VarName>` syntax with tab + global scope |
 | Credential vault | Service/user/pass/hash per target or global, with export |
 | Output parser | Auto-extract IPs, URLs, hashes, creds, ports from output |
@@ -292,4 +292,3 @@ Tests are fully isolated — each test file creates its own temp directory and c
 ## License
 
 MIT
-# Riptide

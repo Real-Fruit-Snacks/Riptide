@@ -3,6 +3,7 @@ rooms/
 certs/
 pictures/
 *.log
+playbooks/
 .omc/
 .claude/
 CLAUDE.md

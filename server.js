@@ -197,79 +197,6 @@ const fileUpload = multer({
 // parseFrontmatter extracted to lib/helpers.js
 const parseFrontmatter = helpers.parseFrontmatter;
 
-async function seedPlaybookLibrary() {
-  const files = (await fsp.readdir(PLAYBOOKS_DIR)).filter(f => f.endsWith('.md'));
-  if (files.length > 0) return;
-
-  const examples = [
-    {
-      filename: 'system-recon.md',
-      content: `---
-tags: [recon, networking, system]
----
-# System Reconnaissance
-
-Gather basic information about the target system.
-
-## Host Info
-
-\`\`\`bash
-hostname && whoami && id
-\`\`\`
-
-## Network Interfaces
-
-\`\`\`bash
-ip addr show
-\`\`\`
-
-## Listening Ports
-
-\`\`\`bash
-ss -tlnp
-\`\`\`
-
-## OS Version
-
-\`\`\`bash
-cat /etc/os-release
-\`\`\`
-`
-    },
-    {
-      filename: 'docker-basics.md',
-      content: `---
-tags: [docker, containers]
----
-# Docker Basics
-
-Common Docker commands for container management.
-
-## List Running Containers
-
-\`\`\`bash
-docker ps
-\`\`\`
-
-## List All Images
-
-\`\`\`bash
-docker images
-\`\`\`
-
-## View Container Logs
-
-\`\`\`bash
-docker logs --tail 50 <container_name>
-\`\`\`
-`
-    }
-  ];
-
-  for (const ex of examples) {
-    await fsp.writeFile(path.join(PLAYBOOKS_DIR, ex.filename), ex.content);
-  }
-}
 
 // --- Password Hashing (extracted to lib/helpers.js) ---
 const hashPassword = helpers.hashPassword;
@@ -467,7 +394,6 @@ const routeCtx = {
   fileUpload,
   PLAYBOOKS_DIR,
   parseFrontmatter,
-  seedPlaybookLibrary,
   ALLOWED_WORKDIR_BASE,
   AdmZip,
 };
@@ -920,7 +846,6 @@ async function bootstrap() {
     await fsp.writeFile(storage.ROOMS_FILE, JSON.stringify({ rooms: [] }, null, 2));
   }
   await fsp.mkdir(PLAYBOOKS_DIR, { recursive: true });
-  await seedPlaybookLibrary();
 }
 
 // --- Start server ---
