@@ -51,7 +51,7 @@ Full theming support with all four Catppuccin flavors — Macchiato (default), M
 ### Install & Run
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/riptide.git
+git clone https://github.com/Real-Fruit-Snacks/Riptide.git
 cd riptide
 npm install
 npm start
