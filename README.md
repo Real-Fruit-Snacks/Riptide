@@ -289,6 +289,12 @@ Tests are fully isolated — each test file creates its own temp directory and c
 
 ---
 
-## License
+<div align="center">
 
-MIT
+**Built for offense. Designed for teams.**
+
+[GitHub](https://github.com/Real-Fruit-Snacks/Riptide) | [License (MIT)](https://github.com/Real-Fruit-Snacks/Riptide/blob/main/LICENSE) | [Report Issue](https://github.com/Real-Fruit-Snacks/Riptide/issues)
+
+*Riptide -- collaborative pentest workspace*
+
+</div>
