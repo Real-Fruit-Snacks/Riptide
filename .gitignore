@@ -1,0 +1,8 @@
+node_modules/
+rooms/
+certs/
+pictures/
+*.log
+.omc/
+.claude/
+CLAUDE.md

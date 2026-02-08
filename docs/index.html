@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Riptide — Collaborative Terminal + Playbook Workspace</title>
+  <meta name="description" content="Collaborative terminal and playbook workspace for penetration testing teams. Real-time sync, variable substitution, credential vaults, and output intelligence.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       RIPTIDE LANDING PAGE
+       Catppuccin Mocha palette — dark terminal aesthetic
+       ========================================================= */
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --ctp-rosewater: #f5e0dc;
+      --ctp-flamingo: #f2cdcd;
+      --ctp-pink: #f5c2e7;
+      --ctp-mauve: #cba6f7;
+      --ctp-red: #f38ba8;
+      --ctp-maroon: #eba0ac;
+      --ctp-peach: #fab387;
+      --ctp-yellow: #f9e2af;
+      --ctp-green: #a6e3a1;
+      --ctp-teal: #94e2d5;
+      --ctp-sky: #89dceb;
+      --ctp-sapphire: #74c7ec;
+      --ctp-blue: #89b4fa;
+      --ctp-lavender: #b4befe;
+      --ctp-text: #cdd6f4;
+      --ctp-subtext1: #bac2de;
+      --ctp-subtext0: #a6adc8;
+      --ctp-overlay2: #9399b2;
+      --ctp-overlay1: #7f849c;
+      --ctp-overlay0: #6c7086;
+      --ctp-surface2: #585b70;
+      --ctp-surface1: #45475a;
+      --ctp-surface0: #313244;
+      --ctp-base: #1e1e2e;
+      --ctp-mantle: #181825;
+      --ctp-crust: #11111b;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: var(--ctp-surface1) var(--ctp-crust);
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--ctp-crust);
+      color: var(--ctp-text);
+      line-height: 1.7;
+      font-size: 15px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ---- Dot-grid background pattern ---- */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(var(--ctp-surface0) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- CRT scanline overlay ---- */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.03) 2px,
+        rgba(0, 0, 0, 0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ---- Layout ---- */
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      margin-bottom: 96px;
+    }
+
+    a {
+      color: var(--ctp-blue);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    a:hover {
+      color: var(--ctp-sapphire);
+    }
+
+    /* ---- Section titles ---- */
+    .section-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--ctp-overlay0);
+      border: 1px solid var(--ctp-surface1);
+      padding: 4px 12px;
+      border-radius: 2px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 700;
+      color: var(--ctp-text);
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .section-desc {
+      color: var(--ctp-subtext0);
+      font-size: 14px;
+      max-width: 600px;
+      margin-bottom: 40px;
+    }
+
+    /* =========================================================
+       HERO
+       ========================================================= */
+    .hero {
+      padding: 80px 0 48px;
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .hero-terminal {
+      border: 1px solid var(--ctp-surface1);
+      border-radius: 8px;
+      background: var(--ctp-mantle);
+      max-width: 780px;
+      margin: 0 auto;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px var(--ctp-surface0),
+        0 24px 80px -12px rgba(0, 0, 0, 0.6),
+        0 0 120px -40px rgba(137, 180, 250, 0.08);
+    }
+
+    .hero-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--ctp-crust);
+      border-bottom: 1px solid var(--ctp-surface0);
+    }
+
+    .hero-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .hero-dot--red { background: var(--ctp-red); }
+    .hero-dot--yellow { background: var(--ctp-yellow); }
+    .hero-dot--green { background: var(--ctp-green); }
+
+    .hero-titlebar-text {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: var(--ctp-overlay0);
+      letter-spacing: 0.05em;
+    }
+
+    .hero-body {
+      padding: 48px 40px 56px;
+    }
+
+    .hero-prompt {
+      font-size: 13px;
+      color: var(--ctp-overlay0);
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero-prompt .prompt-symbol {
+      color: var(--ctp-green);
+    }
+
+    .hero-prompt .prompt-path {
+      color: var(--ctp-blue);
+    }
+
+    .hero-title {
+      font-size: clamp(42px, 7vw, 72px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 8px;
+      background: linear-gradient(
+        135deg,
+        var(--ctp-blue) 0%,
+        var(--ctp-sapphire) 30%,
+        var(--ctp-teal) 60%,
+        var(--ctp-green) 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 40px rgba(137, 180, 250, 0.2));
+    }
+
+    .hero-cursor {
+      display: inline-block;
+      width: 3px;
+      height: 0.8em;
+      background: var(--ctp-green);
+      margin-left: 4px;
+      vertical-align: baseline;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .hero-tagline {
+      font-size: clamp(14px, 2vw, 17px);
+      color: var(--ctp-subtext0);
+      margin-bottom: 36px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .hero-tagline em {
+      color: var(--ctp-subtext1);
+      font-style: normal;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--ctp-blue);
+      color: var(--ctp-crust);
+      border-color: var(--ctp-blue);
+    }
+
+    .btn-primary:hover {
+      background: var(--ctp-sapphire);
+      border-color: var(--ctp-sapphire);
+      color: var(--ctp-crust);
+      box-shadow: 0 0 24px rgba(137, 180, 250, 0.25);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--ctp-subtext1);
+      border-color: var(--ctp-surface1);
+    }
+
+    .btn-ghost:hover {
+      color: var(--ctp-text);
+      border-color: var(--ctp-overlay0);
+      background: var(--ctp-surface0);
+    }
+
+    /* =========================================================
+       FEATURES GRID
+       ========================================================= */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--ctp-mantle);
+      border: 1px solid var(--ctp-surface0);
+      border-radius: 6px;
+      padding: 28px 24px;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--ctp-blue), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--ctp-surface1);
+      background: var(--ctp-base);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.4);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 16px;
+      display: block;
+      width: 44px;
+      height: 44px;
+      line-height: 44px;
+      text-align: center;
+      background: var(--ctp-surface0);
+      border-radius: 8px;
+      border: 1px solid var(--ctp-surface1);
+    }
+
+    .feature-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ctp-text);
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 13px;
+      color: var(--ctp-subtext0);
+      line-height: 1.6;
+    }
+
+    /* ---- Unique accent colors per card ---- */
+    .feature-card:nth-child(1):hover { border-color: var(--ctp-blue); }
+    .feature-card:nth-child(1):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-blue), transparent); }
+
+    .feature-card:nth-child(2):hover { border-color: var(--ctp-green); }
+    .feature-card:nth-child(2):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-green), transparent); }
+
+    .feature-card:nth-child(3):hover { border-color: var(--ctp-mauve); }
+    .feature-card:nth-child(3):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-mauve), transparent); }
+
+    .feature-card:nth-child(4):hover { border-color: var(--ctp-peach); }
+    .feature-card:nth-child(4):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-peach), transparent); }
+
+    .feature-card:nth-child(5):hover { border-color: var(--ctp-teal); }
+    .feature-card:nth-child(5):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-teal), transparent); }
+
+    .feature-card:nth-child(6):hover { border-color: var(--ctp-yellow); }
+    .feature-card:nth-child(6):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-yellow), transparent); }
+
+    .feature-card:nth-child(7):hover { border-color: var(--ctp-red); }
+    .feature-card:nth-child(7):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-red), transparent); }
+
+    .feature-card:nth-child(8):hover { border-color: var(--ctp-flamingo); }
+    .feature-card:nth-child(8):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-flamingo), transparent); }
+
+    /* =========================================================
+       SCREENSHOT
+       ========================================================= */
+    .screenshot-section {
+      text-align: center;
+    }
+
+    .screenshot-frame {
+      border: 1px solid var(--ctp-surface1);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--ctp-mantle);
+      box-shadow:
+        0 0 0 1px var(--ctp-surface0),
+        0 32px 80px -16px rgba(0, 0, 0, 0.5),
+        0 0 160px -60px rgba(137, 180, 250, 0.06);
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .screenshot-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--ctp-crust);
+      border-bottom: 1px solid var(--ctp-surface0);
+    }
+
+    .screenshot-titlebar-text {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: var(--ctp-overlay0);
+    }
+
+    .screenshot-titlebar-text .url-text {
+      color: var(--ctp-green);
+    }
+
+    .screenshot-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .screenshot-caption {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--ctp-overlay1);
+      font-style: italic;
+    }
+
+    /* =========================================================
+       ARCHITECTURE
+       ========================================================= */
+    .arch-terminal {
+      border: 1px solid var(--ctp-surface1);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--ctp-mantle);
+      box-shadow: 0 16px 48px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    .arch-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--ctp-crust);
+      border-bottom: 1px solid var(--ctp-surface0);
+    }
+
+    .arch-titlebar-text {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: var(--ctp-overlay0);
+    }
+
+    .arch-body {
+      padding: 32px;
+    }
+
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .arch-item {
+      padding: 20px;
+      border: 1px solid var(--ctp-surface0);
+      border-radius: 4px;
+      background: var(--ctp-base);
+    }
+
+    .arch-item-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .arch-item-marker {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ctp-crust);
+      background: var(--ctp-blue);
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .arch-item:nth-child(2) .arch-item-marker { background: var(--ctp-green); }
+    .arch-item:nth-child(3) .arch-item-marker { background: var(--ctp-peach); }
+    .arch-item:nth-child(4) .arch-item-marker { background: var(--ctp-red); }
+
+    .arch-item h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ctp-text);
+    }
+
+    .arch-item p {
+      font-size: 13px;
+      color: var(--ctp-subtext0);
+      line-height: 1.6;
+    }
+
+    .arch-item code {
+      font-size: 12px;
+      color: var(--ctp-mauve);
+      background: var(--ctp-surface0);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    .arch-divider {
+      border: none;
+      border-top: 1px dashed var(--ctp-surface1);
+      margin: 28px 0;
+    }
+
+    .arch-stack {
+      font-size: 13px;
+      color: var(--ctp-subtext0);
+      text-align: center;
+    }
+
+    .arch-stack span {
+      display: inline-block;
+      padding: 4px 14px;
+      border: 1px solid var(--ctp-surface1);
+      border-radius: 3px;
+      margin: 4px;
+      background: var(--ctp-base);
+      color: var(--ctp-subtext1);
+      font-size: 12px;
+    }
+
+    /* =========================================================
+       GETTING STARTED
+       ========================================================= */
+    .start-row {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    .start-terminal {
+      border: 1px solid var(--ctp-surface1);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--ctp-mantle);
+      box-shadow: 0 16px 48px -12px rgba(0, 0, 0, 0.4);
+      flex: 1;
+      min-width: 0;
+    }
+
+    .start-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--ctp-crust);
+      border-bottom: 1px solid var(--ctp-surface0);
+    }
+
+    .start-titlebar-text {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: var(--ctp-overlay0);
+    }
+
+    .start-body {
+      padding: 28px 32px;
+    }
+
+    .start-line {
+      margin-bottom: 4px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .start-line .prompt {
+      color: var(--ctp-green);
+      user-select: none;
+    }
+
+    .start-line .cmd {
+      color: var(--ctp-text);
+    }
+
+    .start-line .comment {
+      color: var(--ctp-overlay0);
+    }
+
+    .start-line .flag {
+      color: var(--ctp-peach);
+    }
+
+    .start-line .arg {
+      color: var(--ctp-yellow);
+    }
+
+    .start-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .start-info p {
+      font-size: 14px;
+      color: var(--ctp-subtext0);
+      margin-bottom: 12px;
+      line-height: 1.7;
+    }
+
+    .start-info code {
+      font-size: 13px;
+      color: var(--ctp-peach);
+      background: var(--ctp-surface0);
+      padding: 2px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--ctp-surface1);
+    }
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+    .site-footer {
+      border-top: 1px solid var(--ctp-surface0);
+      padding: 48px 0;
+      text-align: center;
+      margin-top: 32px;
+    }
+
+    .footer-tagline {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ctp-subtext1);
+      margin-bottom: 24px;
+      letter-spacing: 0.02em;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--ctp-overlay1);
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--ctp-blue);
+    }
+
+    .footer-copy {
+      font-size: 12px;
+      color: var(--ctp-overlay0);
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+    @media (max-width: 900px) {
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .arch-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-body {
+        padding: 36px 24px 44px;
+      }
+      .start-row {
+        flex-direction: column;
+        gap: 24px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        font-size: 14px;
+      }
+      .page-wrap {
+        padding: 0 16px;
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      section {
+        margin-bottom: 64px;
+      }
+      .hero {
+        padding: 48px 0 32px;
+      }
+      .hero-body {
+        padding: 28px 20px 36px;
+      }
+      .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      .btn {
+        width: 100%;
+        max-width: 260px;
+        justify-content: center;
+      }
+      .arch-body {
+        padding: 20px;
+      }
+      .start-body {
+        padding: 20px;
+      }
+      .start-line {
+        font-size: 12px;
+      }
+      .feature-card {
+        padding: 22px 20px;
+      }
+    }
+
+    /* ---- Selection highlight ---- */
+    ::selection {
+      background: rgba(137, 180, 250, 0.25);
+      color: var(--ctp-text);
+    }
+
+    /* ---- Focus styles for accessibility ---- */
+    a:focus-visible,
+    .btn:focus-visible {
+      outline: 2px solid var(--ctp-blue);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="top">
+    <div class="hero-terminal">
+      <div class="hero-titlebar">
+        <span class="hero-dot hero-dot--red"></span>
+        <span class="hero-dot hero-dot--yellow"></span>
+        <span class="hero-dot hero-dot--green"></span>
+        <span class="hero-titlebar-text">riptide -- engagement workspace</span>
+      </div>
+      <div class="hero-body">
+        <h1 class="hero-title">Riptide<span class="hero-cursor" aria-hidden="true"></span></h1>
+        <p class="hero-tagline">
+          Collaborative <em>terminal + playbook</em> workspace<br>
+          for penetration testing teams
+        </p>
+        <div class="hero-buttons">
+          <a href="#getting-started" class="btn btn-primary">Get Started</a>
+          <a href="#" class="btn btn-ghost">View on GitHub</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section id="features">
+    <span class="section-label">// capabilities</span>
+    <h2 class="section-title">Everything you need in the field</h2>
+    <p class="section-desc">
+      A purpose-built engagement workspace that replaces scattered terminals, note files, and credential dumps with a single synchronized interface.
+    </p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#9608;</span>
+        <h3>Terminal + Playbooks</h3>
+        <p>Side-by-side xterm.js terminal and markdown playbooks with one-click Run buttons. Execute, capture, annotate.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#8644;</span>
+        <h3>Real-Time Collaboration</h3>
+        <p>Multi-user rooms with dual WebSocket sync, live presence indicators, and edit locks. Your team sees changes instantly.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">$x</span>
+        <h3>Variable Substitution</h3>
+        <p><code style="font-size:12px;color:var(--ctp-mauve);background:var(--ctp-surface0);padding:1px 5px;border-radius:3px;">&lt;TargetIP&gt;</code> syntax with tab and global scope. Auto-scans code blocks, live-highlights set vs unset.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#128273;</span>
+        <h3>Credential Vault</h3>
+        <p>Service, user, pass, hash storage. Click-to-reveal secrets, bulk export, dual tab and global scope with toggle badges.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#9881;</span>
+        <h3>Output Intelligence</h3>
+        <p>Auto-extract IPs, URLs, hashes, credentials, and ports from terminal output. Promote findings to panels with one click.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#128218;</span>
+        <h3>Playbook Library</h3>
+        <p>Searchable collection of methodology templates organized by category and tags. Import, customize, and share across rooms.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#9673;</span>
+        <h3>Session Recording</h3>
+        <p>Record terminal sessions for documentation and review. Replay with full timing fidelity. Never lose a command again.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#9873;</span>
+        <h3>Finding Alerts</h3>
+        <p>Flag findings from playbooks, credentials, or scratch notes. Team-wide toast and browser notifications with persistent alert history.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCREENSHOT ============ -->
+  <section class="screenshot-section" id="screenshot">
+    <span class="section-label">// in action</span>
+    <h2 class="section-title">One workspace. Every target.</h2>
+    <p class="section-desc" style="margin-left:auto;margin-right:auto;">
+      Targets as tabs. Playbooks on the left. Terminal on the right. Credentials, scope, and findings always within reach.
+    </p>
+
+    <div class="screenshot-frame">
+      <div class="screenshot-titlebar">
+        <span class="hero-dot hero-dot--red"></span>
+        <span class="hero-dot hero-dot--yellow"></span>
+        <span class="hero-dot hero-dot--green"></span>
+        <span class="screenshot-titlebar-text"><span class="url-text">https://localhost:3000</span> -- riptide</span>
+      </div>
+      <img
+        src="screenshot.png"
+        alt="Riptide engagement workspace showing target tabs, playbook notes with run buttons, credential vault, and integrated terminal"
+        loading="lazy"
+        width="1920"
+        height="1080"
+      >
+    </div>
+    <p class="screenshot-caption">Active engagement workspace -- targets, playbooks, credentials, and terminal in one view.</p>
+  </section>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <section id="architecture">
+    <span class="section-label">// architecture</span>
+    <h2 class="section-title">Built lean. Runs fast.</h2>
+    <p class="section-desc">
+      No build step, no bundler, no framework overhead. Just a Node server, raw WebSockets, and vanilla JS modules that load in milliseconds.
+    </p>
+
+    <div class="arch-terminal">
+      <div class="arch-titlebar">
+        <span class="hero-dot hero-dot--red"></span>
+        <span class="hero-dot hero-dot--yellow"></span>
+        <span class="hero-dot hero-dot--green"></span>
+        <span class="arch-titlebar-text">system architecture</span>
+      </div>
+      <div class="arch-body">
+        <div class="arch-grid">
+          <div class="arch-item">
+            <div class="arch-item-header">
+              <span class="arch-item-marker">01</span>
+              <h3>Dual WebSocket Architecture</h3>
+            </div>
+            <p>
+              <code>/ws/terminal</code> handles PTY I/O with 256KB ring buffers for late-join replay.
+              <code>/ws/sync</code> broadcasts every state mutation in real-time.
+            </p>
+          </div>
+
+          <div class="arch-item">
+            <div class="arch-item-header">
+              <span class="arch-item-marker">02</span>
+              <h3>Modular Backend</h3>
+            </div>
+            <p>
+              Express server with 12 route modules, shared <code>routeCtx</code> for in-memory state, and <code>lib/storage.js</code> for atomic file operations with locking.
+            </p>
+          </div>
+
+          <div class="arch-item">
+            <div class="arch-item-header">
+              <span class="arch-item-marker">03</span>
+              <h3>No Build Step</h3>
+            </div>
+            <p>
+              Vanilla JS on a global <code>Riptide</code> namespace. Static files served directly. Zero bundler, zero transpilation, zero waiting.
+            </p>
+          </div>
+
+          <div class="arch-item">
+            <div class="arch-item-header">
+              <span class="arch-item-marker">04</span>
+              <h3>Security First</h3>
+            </div>
+            <p>
+              Helmet CSP headers, scrypt password hashing (N=32768), rate limiting on auth, DOMPurify XSS prevention, WebSocket origin checks, TLS by default.
+            </p>
+          </div>
+        </div>
+
+        <hr class="arch-divider">
+
+        <div class="arch-stack">
+          <span>Node.js</span>
+          <span>Express</span>
+          <span>xterm.js</span>
+          <span>node-pty</span>
+          <span>marked.js</span>
+          <span>CodeMirror 6</span>
+          <span>DOMPurify</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GETTING STARTED ============ -->
+  <section id="getting-started">
+    <span class="section-label">// quickstart</span>
+    <h2 class="section-title">Running in 60 seconds</h2>
+    <p class="section-desc">
+      Clone, install, launch. No Docker, no build step, no configuration files to write.
+    </p>
+
+    <div class="start-row">
+      <div class="start-terminal">
+        <div class="start-titlebar">
+          <span class="hero-dot hero-dot--red"></span>
+          <span class="hero-dot hero-dot--yellow"></span>
+          <span class="hero-dot hero-dot--green"></span>
+          <span class="start-titlebar-text">bash</span>
+        </div>
+        <div class="start-body">
+          <div class="start-line">
+            <span class="comment"># Clone the repository</span>
+          </div>
+          <div class="start-line">
+            <span class="prompt">$</span> <span class="cmd">git clone</span> <span class="arg">https://github.com/YOUR_USERNAME/riptide.git</span>
+          </div>
+          <div class="start-line">
+            <span class="prompt">$</span> <span class="cmd">cd</span> <span class="arg">riptide</span>
+          </div>
+          <div class="start-line" style="margin-bottom:16px;">
+            <span class="prompt">$</span> <span class="cmd">npm install</span>
+          </div>
+          <div class="start-line">
+            <span class="comment"># Launch with auto-generated TLS</span>
+          </div>
+          <div class="start-line">
+            <span class="prompt">$</span> <span class="cmd">./start.sh</span>
+          </div>
+          <div class="start-line" style="margin-top:16px;margin-bottom:0;">
+            <span class="comment"># Or customize:</span>
+          </div>
+          <div class="start-line" style="margin-bottom:0;">
+            <span class="prompt">$</span> <span class="cmd">./start.sh</span> <span class="flag">--port</span> <span class="arg">8443</span> <span class="comment">&nbsp;&nbsp;# custom port</span>
+          </div>
+          <div class="start-line" style="margin-bottom:0;">
+            <span class="prompt">$</span> <span class="cmd">./start.sh</span> <span class="flag">--no-ssl</span> <span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;# HTTP mode</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="start-info">
+      <p>
+        Open <code>https://localhost:3000</code> in your browser, create a room with a password, pick a nickname, and invite your team. Each room gets its own terminals, playbooks, credentials, and workspace.
+      </p>
+      <p>
+        Set a <strong style="color:var(--ctp-text);">working directory</strong> when creating a room to persist all data -- playbook notes, credentials, exports, scratch notes -- to a folder on disk. Perfect for engagement archives.
+      </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <p class="footer-tagline">Built for offense. Designed for teams.</p>
+    <nav class="footer-links" aria-label="Footer links">
+      <a href="#">GitHub</a>
+      <a href="#">License (MIT)</a>
+      <a href="#">Report Issue</a>
+    </nav>
+    <p class="footer-copy">Riptide -- collaborative pentest workspace</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
