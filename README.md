@@ -1,10 +1,6 @@
 <div align="center">
 
-<img src="docs/logo.svg" alt="Riptide" width="480">
-
-<br>
-
-**Collaborative terminal + playbook workspace for penetration testing and CTF teams**
+<img src="docs/banner.svg" alt="Riptide" width="800">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Real-Fruit-Snacks/Riptide/blob/main/LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
