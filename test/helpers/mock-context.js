@@ -29,13 +29,19 @@ async function createMockContext(opts = {}) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'riptide-test-'));
   const roomsDir = path.join(tempDir, 'rooms');
   const playbooksDir = path.join(tempDir, 'playbooks');
+  const knowledgeDir = path.join(tempDir, 'knowledge');
 
   await fsp.mkdir(roomsDir, { recursive: true });
   await fsp.mkdir(playbooksDir, { recursive: true });
+  await fsp.mkdir(knowledgeDir, { recursive: true });
 
   // Write initial rooms.json
   const roomsFile = path.join(roomsDir, 'rooms.json');
   await fsp.writeFile(roomsFile, JSON.stringify({ rooms: [] }, null, 2));
+
+  // Write initial knowledge.json
+  const knowledgeFile = path.join(knowledgeDir, 'knowledge.json');
+  await fsp.writeFile(knowledgeFile, JSON.stringify({ entries: [], tags: {} }, null, 2));
 
   // Seed a sample playbook
   await fsp.writeFile(path.join(playbooksDir, 'test-recon.md'), `---
@@ -51,6 +57,7 @@ nmap -sC -sV <TargetIP>
   // Patch storage module to use temp paths
   const storage = require('../../lib/storage');
   const restorePaths = storage._setTestPaths(roomsDir, roomsFile);
+  const restoreKnowledgePaths = storage._setTestKnowledgePaths(knowledgeDir, knowledgeFile);
 
   // Clear caches to ensure clean state
   storage.roomWorkDirCache.clear();
@@ -103,7 +110,9 @@ nmap -sC -sV <TargetIP>
     MAX_CREDENTIAL_FIELD_LENGTH: 2000,
     MAX_COMMAND_LENGTH: 50000,
     MAX_SCRATCH_NOTE_LENGTH: 50000,
-    MAX_WS_MESSAGE_BYTES: 65536
+    MAX_WS_MESSAGE_BYTES: 65536,
+    MAX_CHAT_MESSAGES: 500,
+    MAX_CHAT_MESSAGE_LENGTH: 5000
   };
 
   // Session management helper
@@ -283,7 +292,8 @@ nmap -sC -sV <TargetIP>
     },
 
     /** Restore originals — stored for cleanup */
-    _restorePaths: restorePaths
+    _restorePaths: restorePaths,
+    _restoreKnowledgePaths: restoreKnowledgePaths
   };
 }
 
@@ -296,6 +306,7 @@ async function cleanup(ctx) {
   // Restore original storage paths
   const storage = ctx.storage;
   if (ctx._restorePaths) ctx._restorePaths();
+  if (ctx._restoreKnowledgePaths) ctx._restoreKnowledgePaths();
 
   // Clear caches
   storage.roomWorkDirCache.clear();

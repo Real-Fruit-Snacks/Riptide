@@ -38,7 +38,9 @@ const LIMITS = {
   MAX_COMMAND_LENGTH: 50000,
   MAX_SCRATCH_NOTE_LENGTH: 50000,
   MAX_WS_MESSAGE_BYTES: 65536,
-  MAX_RECORDING_NAME: 100
+  MAX_RECORDING_NAME: 100,
+  MAX_CHAT_MESSAGES: 500,
+  MAX_CHAT_MESSAGE_LENGTH: 5000
 };
 
 // --- Credential validation helper (extracted to lib/helpers.js) ---
@@ -411,6 +413,8 @@ app.use('/api', require('./routes/playbooks')(routeCtx));
 app.use('/api', require('./routes/alerts')(routeCtx));
 app.use('/api', require('./routes/files')(routeCtx));
 app.use('/api', require('./routes/recordings')(routeCtx));
+app.use('/api', require('./routes/knowledge')(routeCtx));
+app.use('/api', require('./routes/chat')(routeCtx));
 
 // --- WebSocket: Terminal (room-scoped PTY) ---
 const wss = new WebSocketServer({ noServer: true, maxPayload: 256 * 1024 });

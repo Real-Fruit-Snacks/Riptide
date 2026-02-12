@@ -12,7 +12,7 @@ Riptide.Recordings = {
       chevronClass: 'recordings-chevron',
       badgeClass: 'recordings-badge',
       label: 'Recordings',
-      startExpanded: true
+      startExpanded: false
     });
   },
 

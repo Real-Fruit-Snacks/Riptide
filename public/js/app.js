@@ -26,8 +26,10 @@ Riptide.App = {
     if (Riptide.Files) Riptide.Files.init();
     if (Riptide.Recordings) Riptide.Recordings.init();
     Riptide.Alerts.init();
+    if (Riptide.Chat) Riptide.Chat.init();
     Riptide.Scope.init();
     Riptide.Credentials.init();
+    if (Riptide.Knowledge) Riptide.Knowledge.init();
     Riptide.Playbooks.init();
     Riptide.Shortcuts.init();
     Riptide.Search.init();
@@ -46,6 +48,10 @@ Riptide.App = {
         document.querySelectorAll('.panel-group').forEach(g => g.classList.add('hidden'));
         const group = document.getElementById('panel-group-' + target);
         if (group) group.classList.remove('hidden');
+        // Clear chat notification dot when switching to Activity
+        if (target === 'activity' && Riptide.Chat) {
+          Riptide.Chat.hideActivityDot();
+        }
       });
     });
 
@@ -219,10 +225,18 @@ Riptide.App = {
               <span class="welcome-icon">&#127912;</span>
               <div><strong>Presence</strong> &mdash; Colored dots on tabs show where teammates are working. User avatars appear in the toolbar header.</div>
             </div>
+            <div class="welcome-feature">
+              <span class="welcome-icon">&#128172;</span>
+              <div><strong>Chat</strong> &mdash; Real-time messaging in the Activity panel. Toggle between Global (room-wide) and Tab-scoped channels. Messages group by user with unread indicators and toast notifications.</div>
+            </div>
           </div>
         </div>
         <div class="welcome-panel" data-panel="data">
           <div class="welcome-features">
+            <div class="welcome-feature">
+              <span class="welcome-icon">&#128218;</span>
+              <div><strong>Knowledge Base</strong> &mdash; Persistent cross-room KB for techniques, tools, findings, and references. Click <strong>KB</strong> buttons on playbooks, credentials, notes, or alerts to promote entries. Search and filter by type or tag from the toolbar or login screen.</div>
+            </div>
             <div class="welcome-feature">
               <span class="welcome-icon">&#128193;</span>
               <div><strong>Files</strong> &mdash; Upload evidence files per tab. View, download, or delete from the Files panel. Supports drag-and-drop.</div>
@@ -293,6 +307,12 @@ Riptide.App = {
     appEl.classList.add('hidden');
 
     await this._refreshRoomList();
+
+    // Auto-select room from URL param (e.g. /?room=roomId from KB link)
+    this._autoSelectRoomFromURL();
+
+    // Initialize knowledge base search on login screen
+    if (Riptide.Auth.initKBSearch) Riptide.Auth.initKBSearch();
 
     return new Promise((resolve) => {
       // Abort any previous room screen listeners to prevent accumulation
@@ -417,6 +437,41 @@ Riptide.App = {
 
     listEl.innerHTML = '';
     listEl.appendChild(frag);
+
+  },
+
+  _autoSelectRoomFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (!roomParam) return;
+
+    const rooms = this._cachedRooms || [];
+    const listEl = document.getElementById('rs-room-list');
+
+    // If room is archived, unarchive it so it becomes visible
+    if (rooms.find(r => r.id === roomParam) && Riptide.Auth.isArchived(roomParam)) {
+      Riptide.Auth.setArchived(roomParam, false);
+      this._renderRoomList();
+    }
+
+    // Find and select the room row
+    let target = null;
+    listEl.querySelectorAll('.rs-room-item').forEach(el => {
+      if (el.dataset.roomId === roomParam) target = el;
+    });
+
+    if (target) {
+      listEl.querySelectorAll('.rs-room-item').forEach(el => el.classList.remove('selected'));
+      target.classList.add('selected');
+      target.scrollIntoView({ block: 'nearest' });
+      const pwInput = document.getElementById('rs-join-password');
+      if (pwInput) setTimeout(() => pwInput.focus(), 100);
+    }
+
+    // Clean URL param
+    const url = new URL(window.location);
+    url.searchParams.delete('room');
+    window.history.replaceState({}, '', url.pathname);
   },
 
   _buildRoomRow(room, isArchived) {
@@ -893,6 +948,7 @@ Riptide.App = {
       Riptide.Recordings ? Riptide.Recordings.load(tabId) : Promise.resolve(),
       Riptide.Scope.load(tabId),
       Riptide.Credentials.load(tabId),
+      Riptide.Chat ? Riptide.Chat.load(tabId).then(() => Riptide.Chat.checkTabUnreads(tabId)) : Promise.resolve(),
     ]);
 
     // Notify others which tab we're on

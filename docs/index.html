@@ -402,6 +402,12 @@
     .feature-card:nth-child(8):hover { border-color: var(--ctp-flamingo); }
     .feature-card:nth-child(8):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-flamingo), transparent); }
 
+    .feature-card:nth-child(9):hover { border-color: var(--ctp-sapphire); }
+    .feature-card:nth-child(9):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-sapphire), transparent); }
+
+    .feature-card:nth-child(10):hover { border-color: var(--ctp-lavender); }
+    .feature-card:nth-child(10):hover::before { background: linear-gradient(90deg, transparent, var(--ctp-lavender), transparent); }
+
     /* =========================================================
        SCREENSHOT
        ========================================================= */
@@ -853,6 +859,18 @@
         <h3>Finding Alerts</h3>
         <p>Flag findings from playbooks, credentials, or scratch notes. Team-wide toast and browser notifications with persistent alert history.</p>
       </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#128172;</span>
+        <h3>Real-Time Chat</h3>
+        <p>Built-in messaging with global and tab-scoped channels. Messages group by user with unread indicators and toast notifications.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">&#128214;</span>
+        <h3>Knowledge Base</h3>
+        <p>Persistent cross-room KB for techniques, tools, findings, and references. Promote from any panel, search by type or tag.</p>
+      </div>
     </div>
   </section>
 
@@ -916,7 +934,7 @@
               <h3>Modular Backend</h3>
             </div>
             <p>
-              Express server with 12 route modules, shared <code>routeCtx</code> for in-memory state, and <code>lib/storage.js</code> for atomic file operations with locking.
+              Express server with 15 route modules, shared <code>routeCtx</code> for in-memory state, and <code>lib/storage.js</code> for atomic file operations with locking.
             </p>
           </div>
 

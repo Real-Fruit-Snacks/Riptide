@@ -15,34 +15,50 @@
     <div class="rs-container">
       <h1 class="rs-title">Riptide</h1>
 
-      <div class="rs-section">
-        <h2 class="rs-section-title">Available Rooms</h2>
-        <div id="rs-room-list" class="rs-room-list"></div>
-        <div class="rs-form">
-          <input type="password" id="rs-join-password" class="rs-input" placeholder="Room password" spellcheck="false" autocomplete="off" maxlength="128" />
-          <input type="text" id="rs-join-nickname" class="rs-input" placeholder="Your nickname" spellcheck="false" maxlength="32" />
-          <button id="rs-join-btn" class="rs-btn rs-btn-primary">Join Selected Room</button>
-          <div id="rs-join-error" class="rs-error"></div>
-        </div>
-      </div>
-
-      <div class="rs-divider"><span>or create a new room</span></div>
-
-      <div class="rs-section">
-        <div class="rs-form">
-          <input type="text" id="rs-create-name" class="rs-input" placeholder="Room name" spellcheck="false" maxlength="64" />
-          <input type="password" id="rs-create-password" class="rs-input" placeholder="Room password" spellcheck="false" autocomplete="off" maxlength="128" />
-          <input type="text" id="rs-create-nickname" class="rs-input" placeholder="Your nickname" spellcheck="false" maxlength="32" />
-          <input type="text" id="rs-create-workdir" class="rs-input" placeholder="Working directory (optional, e.g. /root/engagements/lab)" spellcheck="false" maxlength="512" />
-          <div class="rs-import-row">
-            <label class="rs-import-label">
-              <input type="file" id="rs-import-file" accept=".zip" style="display:none" />
-              <span class="rs-import-btn">Attach Export (.zip)</span>
-            </label>
-            <span id="rs-import-filename" class="rs-import-filename"></span>
+      <div class="rs-layout">
+        <!-- Knowledge Base (LEFT COLUMN) -->
+        <div class="rs-column rs-kb-column">
+          <div class="rs-section">
+            <h2 class="rs-section-title">Knowledge Base</h2>
+            <input type="text" id="rs-kb-search" class="rs-input rs-kb-search-input" placeholder="Search techniques, tools, services..." spellcheck="false" />
+            <div id="rs-kb-type-filter" class="rs-kb-type-filter"></div>
+            <div id="rs-kb-tags" class="rs-kb-tags"></div>
+            <div id="rs-kb-results" class="rs-kb-results"></div>
           </div>
-          <button id="rs-create-btn" class="rs-btn rs-btn-accent">Create New Room</button>
-          <div id="rs-create-error" class="rs-error"></div>
+        </div>
+
+        <!-- Rooms (RIGHT COLUMN) -->
+        <div class="rs-column rs-rooms-column">
+          <div class="rs-section">
+            <h2 class="rs-section-title">Available Rooms</h2>
+            <div id="rs-room-list" class="rs-room-list"></div>
+            <div class="rs-form">
+              <input type="password" id="rs-join-password" class="rs-input" placeholder="Room password" spellcheck="false" autocomplete="off" maxlength="128" />
+              <input type="text" id="rs-join-nickname" class="rs-input" placeholder="Your nickname" spellcheck="false" maxlength="32" />
+              <button id="rs-join-btn" class="rs-btn rs-btn-primary">Join Selected Room</button>
+              <div id="rs-join-error" class="rs-error"></div>
+            </div>
+          </div>
+
+          <div class="rs-divider"><span>or create a new room</span></div>
+
+          <div class="rs-section">
+            <div class="rs-form">
+              <input type="text" id="rs-create-name" class="rs-input" placeholder="Room name" spellcheck="false" maxlength="64" />
+              <input type="password" id="rs-create-password" class="rs-input" placeholder="Room password" spellcheck="false" autocomplete="off" maxlength="128" />
+              <input type="text" id="rs-create-nickname" class="rs-input" placeholder="Your nickname" spellcheck="false" maxlength="32" />
+              <input type="text" id="rs-create-workdir" class="rs-input" placeholder="Working directory (optional, e.g. /root/engagements/lab)" spellcheck="false" maxlength="512" />
+              <div class="rs-import-row">
+                <label class="rs-import-label">
+                  <input type="file" id="rs-import-file" accept=".zip" style="display:none" />
+                  <span class="rs-import-btn">Attach Export (.zip)</span>
+                </label>
+                <span id="rs-import-filename" class="rs-import-filename"></span>
+              </div>
+              <button id="rs-create-btn" class="rs-btn rs-btn-accent">Create New Room</button>
+              <div id="rs-create-error" class="rs-error"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -55,6 +71,7 @@
       </div>
       <div class="toolbar-right">
         <span id="room-name" class="room-badge"></span>
+        <button id="btn-knowledge" class="kb-toolbar-btn" title="Knowledge Base">KB</button>
         <button id="btn-room-settings" class="room-settings-btn" title="Settings">&#9881;</button>
         <button id="btn-record" class="record-btn" title="Record terminal session">&#9679;</button>
         <div id="presence-bar"></div>
@@ -68,17 +85,9 @@
 
     <main id="main-content">
       <div id="left-panel">
-        <div id="playbook-toolbar">
-          <input type="text" id="playbook-search" placeholder="Search library..." spellcheck="false" />
-          <button id="btn-browse-library" title="Browse playbook library">&#9776;</button>
-          <button id="btn-capture-output" title="Paste clipboard as captured output">&dArr;</button>
-          <button id="btn-import-playbook" title="Import playbook (.md)">&#8613;</button>
-          <input type="file" id="playbook-import-input" accept=".md" multiple style="display:none" />
-          <button id="btn-add-playbook" title="New Playbook">+</button>
-          <div id="library-dropdown" class="hidden"></div>
-        </div>
         <div id="panel-tabs">
           <button class="panel-tab active" data-panel="ops">Ops</button>
+          <button class="panel-tab" data-panel="playbooks">Playbooks</button>
           <button class="panel-tab" data-panel="activity">Activity</button>
           <button class="panel-tab" data-panel="files">Files</button>
         </div>
@@ -100,6 +109,18 @@
             <div id="scratchpad-list"></div>
           </div>
         </div>
+        <div id="panel-group-playbooks" class="panel-group hidden">
+          <div id="playbook-toolbar">
+            <input type="text" id="playbook-search" placeholder="Search library..." spellcheck="false" />
+            <button id="btn-browse-library" title="Browse playbook library">&#9776;</button>
+            <button id="btn-capture-output" title="Paste clipboard as captured output">&dArr;</button>
+            <button id="btn-import-playbook" title="Import playbook (.md)">&#8613;</button>
+            <input type="file" id="playbook-import-input" accept=".md" multiple style="display:none" />
+            <button id="btn-add-playbook" title="New Playbook">+</button>
+            <div id="library-dropdown" class="hidden"></div>
+          </div>
+          <div id="playbook-stack"></div>
+        </div>
         <div id="panel-group-activity" class="panel-group hidden">
           <div id="history-section">
             <div id="history-header">Command History</div>
@@ -113,6 +134,10 @@
             <div id="alerts-header">Alerts</div>
             <div id="alerts-list"></div>
           </div>
+          <div id="chat-section">
+            <div id="chat-header">Chat</div>
+            <div id="chat-list"></div>
+          </div>
         </div>
         <div id="panel-group-files" class="panel-group hidden">
           <div id="files-section">
@@ -124,7 +149,6 @@
             <div id="recordings-list"></div>
           </div>
         </div>
-        <div id="playbook-stack"></div>
       </div>
 
       <div id="splitter"></div>
@@ -176,12 +200,14 @@
   <script src="/js/scratchpad.js"></script>
   <script src="/js/files.js"></script>
   <script src="/js/alerts.js"></script>
+  <script src="/js/chat.js"></script>
   <script src="/js/credentials.js"></script>
   <script src="/js/output-parser.js"></script>
   <script src="/js/preview.js"></script>
   <script src="/js/tabs.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/knowledge.js"></script>
   <script src="/js/sync.js"></script>
   <script src="/js/presence.js"></script>
   <script src="/js/editor.js"></script>

@@ -14,7 +14,12 @@ module.exports = function(ctx) {
   // GET /api/tabs
   router.get('/tabs', requireRoom, async (req, res) => {
     try {
-      const data = await storage.readRoomTabs(req.roomId);
+      let data = await storage.readRoomTabs(req.roomId);
+      if (!data) {
+        // Auto-initialize if tabs.json is missing (e.g. new workDir)
+        await storage.initRoom(req.roomId);
+        data = await storage.readRoomTabs(req.roomId);
+      }
       if (!data) {
         return res.status(500).json({ error: 'No tab data for room' });
       }

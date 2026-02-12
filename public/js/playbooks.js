@@ -243,6 +243,11 @@ Riptide.Playbooks = {
     flagBtn.title = 'Flag this finding for teammates';
     flagBtn.innerHTML = '&#9873;';
 
+    const kbBtn = document.createElement('button');
+    kbBtn.className = 'pb-btn-kb';
+    kbBtn.title = 'Save to Knowledge Base';
+    kbBtn.textContent = 'KB';
+
     const editBtn = document.createElement('button');
     editBtn.className = 'pb-btn-edit';
     editBtn.title = 'Edit';
@@ -268,6 +273,7 @@ Riptide.Playbooks = {
     header.appendChild(runAllBtn);
     header.appendChild(exportBtn);
     header.appendChild(flagBtn);
+    header.appendChild(kbBtn);
     header.appendChild(editBtn);
     header.appendChild(deleteBtn);
 
@@ -282,7 +288,7 @@ Riptide.Playbooks = {
     section.appendChild(body);
 
     header.addEventListener('click', (e) => {
-      if (e.target.closest('.pb-btn-edit') || e.target.closest('.pb-btn-delete') || e.target.closest('.pb-btn-run-all') || e.target.closest('.pb-btn-export') || e.target.closest('.pb-btn-flag') || e.target.closest('.pb-severity')) return;
+      if (e.target.closest('.pb-btn-edit') || e.target.closest('.pb-btn-delete') || e.target.closest('.pb-btn-run-all') || e.target.closest('.pb-btn-export') || e.target.closest('.pb-btn-flag') || e.target.closest('.pb-btn-kb') || e.target.closest('.pb-severity')) return;
       this._toggleSection(noteId);
     });
 
@@ -299,6 +305,17 @@ Riptide.Playbooks = {
     flagBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this._flagFinding(noteId);
+    });
+
+    kbBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (Riptide.Knowledge) {
+        const sec = this.sections.get(noteId);
+        const tabName = Riptide.Tabs && Riptide.Tabs.activeTabId
+          ? (Riptide.Tabs.tabs.find(t => t.id === Riptide.Tabs.activeTabId) || {}).name || ''
+          : '';
+        Riptide.Knowledge.saveFromPlaybook(sec.title || noteId, sec.rawContent || '', tabName);
+      }
     });
 
     editBtn.addEventListener('click', (e) => {
@@ -959,6 +976,7 @@ Riptide.Playbooks = {
     Riptide.Severity.applyBadge(badge, severity);
     if (!severity) {
       badge.textContent = 'SEV';
+      badge.style.display = '';
     }
   },
 

@@ -183,6 +183,21 @@ Riptide.ScratchPad = {
       textEl.className = 'scratch-text';
       textEl.textContent = entry.text;
 
+      // KB button
+      const kbBtn = document.createElement('button');
+      kbBtn.className = 'scratch-kb-btn';
+      kbBtn.title = 'Save to Knowledge Base';
+      kbBtn.textContent = 'KB';
+      kbBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (Riptide.Knowledge) {
+          const tabName = Riptide.Tabs && Riptide.Tabs.activeTabId
+            ? (Riptide.Tabs.tabs.find(t => t.id === Riptide.Tabs.activeTabId) || {}).name || ''
+            : '';
+          Riptide.Knowledge.saveFromScratchNote(entry, tabName);
+        }
+      });
+
       // Flag button
       const flagBtn = document.createElement('button');
       flagBtn.className = 'scratch-flag-btn';
@@ -223,6 +238,7 @@ Riptide.ScratchPad = {
       meta.appendChild(sevBadge);
       meta.appendChild(time);
       meta.appendChild(user);
+      meta.appendChild(kbBtn);
       meta.appendChild(flagBtn);
       meta.appendChild(editBtn);
       meta.appendChild(delBtn);
@@ -301,6 +317,7 @@ Riptide.ScratchPad = {
     Riptide.Severity.applyBadge(el, severity);
     if (!severity) {
       el.textContent = 'SEV';
+      el.style.display = '';
     }
   },
 

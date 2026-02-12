@@ -14,7 +14,7 @@ Riptide.Files = {
       chevronClass: 'files-chevron',
       badgeClass: 'files-badge',
       label: 'Files',
-      startExpanded: true
+      startExpanded: false
     });
 
     // Upload button
@@ -52,7 +52,7 @@ Riptide.Files = {
     this._addrInput.addEventListener('click', (e) => e.stopPropagation());
     this._addrRow.appendChild(addrLabel);
     this._addrRow.appendChild(this._addrInput);
-    this._panel.list.parentNode.insertBefore(this._addrRow, this._panel.list);
+    this._panel.list.prepend(this._addrRow);
 
     // Drag-and-drop on the list area
     this._panel.list.addEventListener('dragover', (e) => {

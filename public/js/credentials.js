@@ -284,6 +284,18 @@ Riptide.Credentials = {
       // Actions
       const tdActions = document.createElement('td');
       tdActions.className = 'cred-cell-actions';
+      const kbBtn = document.createElement('button');
+      kbBtn.className = 'cred-action-btn cred-kb-btn';
+      kbBtn.title = 'Save to Knowledge Base';
+      kbBtn.textContent = 'KB';
+      kbBtn.addEventListener('click', () => {
+        if (Riptide.Knowledge) {
+          const tabName = Riptide.Tabs && Riptide.Tabs.activeTabId
+            ? (Riptide.Tabs.tabs.find(t => t.id === Riptide.Tabs.activeTabId) || {}).name || ''
+            : '';
+          Riptide.Knowledge.saveFromCredential(entry, tabName);
+        }
+      });
       const editBtn = document.createElement('button');
       editBtn.className = 'cred-action-btn';
       editBtn.innerHTML = '&#9998;';
@@ -313,6 +325,7 @@ Riptide.Credentials = {
 
         Riptide.Alerts.flag('credential', entry.service || 'Credential', parts.join(' | '), 'Credential flagged to teammates');
       });
+      tdActions.appendChild(kbBtn);
       tdActions.appendChild(flagBtn);
       tdActions.appendChild(editBtn);
       tdActions.appendChild(delBtn);
@@ -398,6 +411,23 @@ Riptide.Credentials = {
       inputs[field.key] = input;
       row.appendChild(labelEl);
       row.appendChild(input);
+
+      // Show/hide toggle for password field
+      if (field.type === 'password') {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'cred-form-toggle-vis';
+        toggleBtn.textContent = '\u25C9';
+        toggleBtn.title = 'Show password';
+        toggleBtn.addEventListener('click', () => {
+          const showing = input.type === 'text';
+          input.type = showing ? 'password' : 'text';
+          toggleBtn.textContent = showing ? '\u25C9' : '\u25CE';
+          toggleBtn.title = showing ? 'Show password' : 'Hide password';
+        });
+        row.appendChild(toggleBtn);
+      }
+
       form.appendChild(row);
     }
 

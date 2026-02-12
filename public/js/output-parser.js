@@ -226,8 +226,9 @@ Riptide.OutputParser = {
       itemsDiv.className = 'of-items';
 
       for (const finding of group.items) {
+        const inScope = this._isInScope(finding);
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'of-item';
+        itemDiv.className = inScope ? 'of-item of-in-scope' : 'of-item';
 
         const valueSpan = document.createElement('span');
         valueSpan.className = 'of-value';
@@ -237,15 +238,23 @@ Riptide.OutputParser = {
 
         // Primary action button
         if (finding.action !== 'copy') {
-          const promoteBtn = document.createElement('button');
-          promoteBtn.className = 'of-promote';
-          promoteBtn.dataset.action = finding.action;
-          promoteBtn.title = this._getActionTitle(finding.action);
-          promoteBtn.textContent = this._getActionLabel(finding.action);
-          promoteBtn.addEventListener('click', () => {
-            this._handleAction(finding.action, finding.value, finding.label);
-          });
-          itemDiv.appendChild(promoteBtn);
+          if (inScope) {
+            const badge = document.createElement('span');
+            badge.className = 'of-in-scope-badge';
+            badge.textContent = '\u2713 Scope';
+            badge.title = 'Already in scope';
+            itemDiv.appendChild(badge);
+          } else {
+            const promoteBtn = document.createElement('button');
+            promoteBtn.className = 'of-promote';
+            promoteBtn.dataset.action = finding.action;
+            promoteBtn.title = this._getActionTitle(finding.action);
+            promoteBtn.textContent = this._getActionLabel(finding.action);
+            promoteBtn.addEventListener('click', () => {
+              this._handleAction(finding.action, finding.value, finding.label);
+            });
+            itemDiv.appendChild(promoteBtn);
+          }
         }
 
         // Copy button (always present)
@@ -477,6 +486,22 @@ Riptide.OutputParser = {
     }
 
     codeEl.innerHTML = DOMPurify.sanitize(parts.join(''), { ALLOWED_TAGS: ['span'], ALLOWED_ATTR: ['class'] });
+  },
+
+  _isInScope(finding) {
+    const tab = Riptide.Tabs ? Riptide.Tabs.getActiveTab() : null;
+    if (!tab || !tab.scope) return false;
+
+    if (finding.action === 'scope-ip') {
+      return tab.scope.ip === finding.value;
+    }
+    if (finding.action === 'scope-port') {
+      if (!tab.scope.ports) return false;
+      const portMatch = finding.value.match(/^(\d+\/\w+)/);
+      const portStr = portMatch ? portMatch[0] : finding.value;
+      return tab.scope.ports.split(',').some(p => p.trim() === portStr);
+    }
+    return false;
   },
 
   _escapeHtml(str) {

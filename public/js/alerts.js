@@ -116,12 +116,25 @@ Riptide.Alerts = {
       user.className = 'alerts-user';
       user.textContent = entry.nickname || '';
 
+      // KB button
+      const kbBtn = document.createElement('button');
+      kbBtn.className = 'alerts-kb-btn';
+      kbBtn.title = 'Save to Knowledge Base';
+      kbBtn.textContent = 'KB';
+      kbBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (Riptide.Knowledge) {
+          Riptide.Knowledge.saveFromAlert(entry);
+        }
+      });
+
       // Meta line
       const meta = document.createElement('div');
       meta.className = 'alerts-meta';
       meta.appendChild(ctxBadge);
       meta.appendChild(time);
       meta.appendChild(user);
+      meta.appendChild(kbBtn);
 
       // Title
       const titleEl = document.createElement('div');

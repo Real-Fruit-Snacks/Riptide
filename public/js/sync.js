@@ -141,6 +141,25 @@ Riptide.Sync = {
       case 'alerts-cleared':
         if (Riptide.Alerts) Riptide.Alerts.clearEntries();
         break;
+      case 'chat-message':
+        if (Riptide.Chat) {
+          const isActiveTab = msg.scope === 'global' || msg.tabId === Riptide.Tabs.activeTabId;
+          if (msg.scope === Riptide.Chat._scope && isActiveTab) {
+            Riptide.Chat.addMessage(msg.entry, msg.scope);
+          } else if (msg.scope === 'tab' && !isActiveTab) {
+            Riptide.Chat.trackTabUnread(msg.tabId);
+          }
+        }
+        break;
+      case 'knowledge-created':
+        if (Riptide.Knowledge) Riptide.Knowledge.onKnowledgeCreated(msg.entry);
+        break;
+      case 'knowledge-updated':
+        if (Riptide.Knowledge) Riptide.Knowledge.onKnowledgeUpdated(msg.entry);
+        break;
+      case 'knowledge-deleted':
+        if (Riptide.Knowledge) Riptide.Knowledge.onKnowledgeDeleted(msg.entryId);
+        break;
       case 'note-severity-changed':
         if (Riptide.Playbooks) {
           Riptide.Playbooks._setSeverity(msg.noteId, msg.severity);
@@ -155,8 +174,8 @@ Riptide.Sync = {
       case 'session-reset':     this._onSessionReset(); break;
       case 'tab-switch':        Riptide.Presence.setUserTab(msg.nickname, msg.tabId); break;
       case 'users':             Riptide.Presence.update(msg.users); break;
-      case 'user-joined':       Riptide.Presence.addUser(msg); break;
-      case 'user-left':         Riptide.Presence.removeUser(msg.nickname); break;
+      case 'user-joined':       Riptide.Presence.addUser(msg); Riptide.toast(`${msg.nickname} joined the room`); break;
+      case 'user-left':         Riptide.Presence.removeUser(msg.nickname); Riptide.toast(`${msg.nickname} left the room`); break;
     }
   },
 
@@ -361,7 +380,9 @@ Riptide.Sync = {
         tabId ? Riptide.Credentials.load(tabId) : Promise.resolve(),
         tabId && Riptide.History ? Riptide.History.load(tabId) : Promise.resolve(),
         tabId && Riptide.AuditLog ? Riptide.AuditLog.load(tabId) : Promise.resolve(),
-        tabId && Riptide.Files ? Riptide.Files.load(tabId) : Promise.resolve()
+        tabId && Riptide.Files ? Riptide.Files.load(tabId) : Promise.resolve(),
+        Riptide.Knowledge ? Riptide.Knowledge.load() : Promise.resolve(),
+        Riptide.Chat ? Riptide.Chat.load(tabId) : Promise.resolve()
       ]);
 
       Riptide.Variables.refresh();

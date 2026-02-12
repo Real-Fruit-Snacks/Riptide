@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Real-Fruit-Snacks/Riptide/blob/main/LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/Tests-630%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-675%20passing-brightgreen.svg)](#testing)
 
 <br>
 
@@ -81,14 +81,14 @@ Build your own library of reusable playbooks organized by category and tags. Sea
 <tr>
 <td width="50%">
 
-### Target Scope Tracking
-Per-tab scope panel for IP, hostname, OS, open ports, services, and notes. Tab status badges cycle through recon / exploit / post-exploit / pwned / blocked to track engagement progress at a glance.
+### Knowledge Base
+A persistent, cross-room knowledge base for techniques, tools, findings, and references. Promote entries directly from playbooks, credentials, scratch notes, or alerts with one click. Search and filter by type or tag from the toolbar or login screen.
 
 </td>
 <td width="50%">
 
-### 4 Catppuccin Themes
-Full theming support with all four Catppuccin flavors — Macchiato (default), Mocha, Frappe, and Latte. Every color in the app responds to theme changes instantly.
+### Real-Time Chat
+Built-in messaging with global (room-wide) and tab-scoped channels. Messages group by user with timestamps, unread indicators, and toast notifications when teammates aren't looking at the panel.
 
 </td>
 </tr>
@@ -135,7 +135,7 @@ SSL_KEY=/path/to/your.key SSL_CERT=/path/to/your.cert npm start
 ```bash
 npm run dev          # Start with --watch (auto-restart on changes)
 npm run lint         # ESLint with 0-warning policy
-npm test             # Run all 630 tests
+npm test             # Run all 675 tests
 npm run test:watch   # Watch mode
 ```
 
@@ -151,7 +151,7 @@ Riptide/
 ├── lib/
 │   ├── storage.js         # File I/O, path resolution, atomic JSON updates
 │   └── helpers.js         # Validation, hashing, frontmatter parsing
-├── routes/                # 13 Express Router modules
+├── routes/                # 15 Express Router modules
 │   ├── rooms.js           # Room CRUD, join/leave
 │   ├── tabs.js            # Tab management, status, scope
 │   ├── notes.js           # Playbook notes CRUD, ordering, severity
@@ -163,6 +163,8 @@ Riptide/
 │   ├── playbooks.js       # Playbook library search and import
 │   ├── alerts.js          # Flagged finding alert history
 │   ├── recordings.js      # Terminal session recording
+│   ├── chat.js            # Real-time chat (global + tab scope)
+│   ├── knowledge.js       # Knowledge base CRUD, search, tags
 │   ├── audit.js           # Audit log
 │   └── session.js         # Session reset, cleanup
 ├── playbooks/             # User playbook library (.md files)
@@ -170,9 +172,9 @@ Riptide/
 │   ├── css/
 │   │   ├── theme.css      # Catppuccin theme definitions (4 flavors)
 │   │   └── style.css      # Application styles (~5700 lines)
-│   ├── js/                # 35 frontend modules on Riptide.* namespace
+│   ├── js/                # 37 frontend modules on Riptide.* namespace
 │   └── index.html         # Single-page shell
-└── test/                  # 630 tests across 25 files
+└── test/                  # 675 tests across 27 files
     ├── unit/              # Pure logic tests
     ├── integration/       # HTTP + WebSocket tests
     └── helpers/           # Test factories and fixtures
@@ -183,7 +185,7 @@ Riptide/
 | Endpoint | Purpose | Details |
 |----------|---------|---------|
 | `/ws/terminal` | PTY I/O | stdin/stdout streaming, resize events, 256KB ring buffer for late-join replay |
-| `/ws/sync` | State broadcast | Note edits, credential changes, presence tracking, edit locks, finding alerts |
+| `/ws/sync` | State broadcast | Note edits, credential changes, presence tracking, edit locks, finding alerts, chat messages, KB sync |
 
 ### Data Storage
 
@@ -195,10 +197,12 @@ Each room can specify a **working directory** — a filesystem path where all en
 ├── global-credentials.json      # Room-wide credentials
 ├── global-variables.json        # Room-wide variables
 ├── alerts.json                  # Flagged findings (capped at 200)
+├── chat-global.json             # Room-wide chat messages
 └── {TargetName}/                # Per-target folder
     ├── *.md                     # Playbook notes
     ├── credentials.json         # Target-scoped credentials
     ├── scratch-notes.json       # Quick notes
+    ├── chat.json                # Tab-scoped chat messages
     └── credentials.txt          # Exported credentials
 ```
 
@@ -245,6 +249,8 @@ No build step. No bundler. No framework. Just modules.
 | **Theme support** | 4 Catppuccin flavors (Latte, Frappe, Macchiato, Mocha) |
 | **Audit log** | Track room activity |
 | **Session management** | Room admin controls, session reset |
+| **Chat** | Real-time messaging with global (room-wide) and tab-scoped channels |
+| **Knowledge Base** | Persistent cross-room KB for techniques, tools, findings, and references |
 
 ---
 
@@ -313,7 +319,7 @@ Variables like `<TargetIP>` are detected automatically and rendered as input fie
 ## Testing
 
 ```bash
-npm test                      # All 630 tests
+npm test                      # All 675 tests
 npm run test:unit             # Unit tests only
 npm run test:integration      # Integration tests only
 npm run test:coverage         # With V8 coverage report
