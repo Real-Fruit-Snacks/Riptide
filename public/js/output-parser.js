@@ -376,6 +376,10 @@ Riptide.OutputParser = {
       const tab = Riptide.Tabs.getActiveTab();
       if (tab) {
         if (!tab.scope) tab.scope = {};
+        if (tab.scope.ip === value) {
+          Riptide.toast('IP already in scope');
+          break;
+        }
         tab.scope.ip = value;
         Riptide.Scope.load(Riptide.Tabs.activeTabId);
         Riptide.Scope._onFieldChange('ip', value);
@@ -390,9 +394,11 @@ Riptide.OutputParser = {
         const existing = tab.scope.ports || '';
         const portMatch = value.match(/^(\d+\/\w+)/);
         const portNum = portMatch ? portMatch[0] : value;
-        if (!existing.includes(portNum)) {
-          tab.scope.ports = existing ? existing + ', ' + portNum : portNum;
+        if (existing.split(',').some(p => p.trim() === portNum)) {
+          Riptide.toast('Port already in scope');
+          break;
         }
+        tab.scope.ports = existing ? existing + ', ' + portNum : portNum;
         Riptide.Scope.load(Riptide.Tabs.activeTabId);
         Riptide.Scope._onFieldChange('ports', tab.scope.ports);
       }
@@ -416,6 +422,18 @@ Riptide.OutputParser = {
           username = match ? match[1] : value;
         }
       }
+      // Check if credential already exists
+      const allCreds = [
+        ...(Riptide.Credentials.entries || []),
+        ...(Riptide.Credentials.globalEntries || [])
+      ];
+      const exists = allCreds.some(c =>
+        c.username === username && c.password === password
+      );
+      if (exists) {
+        Riptide.toast('Credential already exists');
+        break;
+      }
       Riptide.Credentials.addCredential({ username, password, service: '' });
       Riptide.toast('Credential added');
       break;
@@ -426,6 +444,13 @@ Riptide.OutputParser = {
       if (tab) {
         if (!tab.variables) tab.variables = {};
         const varName = label + '_' + shortHash;
+        // Check if variable already exists with this value
+        const existingVal = tab.variables[varName];
+        const globalVars = Riptide.Variables ? Riptide.Variables._globalVars : {};
+        if (existingVal === value || (globalVars && globalVars[varName] === value)) {
+          Riptide.toast('Hash already saved as variable');
+          break;
+        }
         tab.variables[varName] = value;
         Riptide.Tabs.setTabVariables(Riptide.Tabs.activeTabId, tab.variables);
         Riptide.Variables.refresh();

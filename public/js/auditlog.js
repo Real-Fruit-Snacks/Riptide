@@ -83,7 +83,8 @@ Riptide.AuditLog = {
 
       const typeEl = document.createElement('span');
       typeEl.className = 'audit-type audit-type-' + (entry.type || 'run');
-      typeEl.textContent = entry.type === 'run-all' ? 'ALL' : (entry.type === 'rerun' ? 'RE' : 'RUN');
+      const typeLabels = { 'run': 'RUN', 'run-all': 'ALL', 'rerun': 'RE', 'typed': 'CMD', 'manual': 'CMD', 'shortcut': 'KEY' };
+      typeEl.textContent = typeLabels[entry.type] || 'RUN';
 
       row.appendChild(time);
       row.appendChild(user);

@@ -1068,23 +1068,15 @@ Riptide.Playbooks = {
         if (cancelled) break;
       }
 
-      Riptide.Terminal.sendCommand(cmd.result);
+      const auditSection = this.sections.get(noteId);
+      Riptide.Terminal.sendCommand(cmd.result, {
+        type: 'run-all',
+        playbookTitle: auditSection ? auditSection.title : '',
+        noteId
+      });
 
       if (tabId && Riptide.History) {
         Riptide.History.log(tabId, cmd.result);
-      }
-
-      // Log to audit trail
-      if (tabId && Riptide.AuditLog) {
-        const auditSection = this.sections.get(noteId);
-        const tabVars = Riptide.Variables.getEffective();
-        Riptide.AuditLog.log(tabId, {
-          playbookTitle: auditSection ? auditSection.title : '',
-          noteId,
-          command: cmd.result,
-          variables: tabVars,
-          type: 'run-all'
-        });
       }
 
       // Wait for delay before next command

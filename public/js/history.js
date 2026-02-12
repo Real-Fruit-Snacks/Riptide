@@ -144,8 +144,8 @@ Riptide.History = {
       Riptide.toast('Missing: ' + missing.join(', '));
       return;
     }
-    Riptide.Terminal.sendCommand(result);
-    // Also log the re-run
+    Riptide.Terminal.sendCommand(result, { type: 'rerun' });
+    // Also log the re-run to command history
     const tabId = Riptide.Tabs ? Riptide.Tabs.activeTabId : null;
     if (tabId) {
       this.log(tabId, result);

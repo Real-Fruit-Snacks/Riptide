@@ -301,12 +301,22 @@ Riptide.Terminal = {
     }
   },
 
-  sendCommand(command) {
+  sendCommand(command, opts) {
     if (!this.activeTabId) return;
     const inst = this._getActiveSubTab(this.activeTabId);
     if (!inst || !inst.ws || inst.ws.readyState !== WebSocket.OPEN) return;
     inst.ws.send(JSON.stringify({ type: 'input', data: command + '\r' }));
     inst.term.focus();
+    // Audit log for manually typed/re-run commands (playbook runs are logged in preview.js)
+    if (!(opts && opts.skipAudit) && Riptide.AuditLog) {
+      Riptide.AuditLog.log(this.activeTabId, {
+        playbookTitle: (opts && opts.playbookTitle) || '',
+        noteId: (opts && opts.noteId) || '',
+        command,
+        variables: Riptide.Variables ? Riptide.Variables.getEffective() : {},
+        type: (opts && opts.type) || 'manual'
+      });
+    }
   },
 
   markCommandStart(tabId) {

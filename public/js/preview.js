@@ -158,26 +158,18 @@ Riptide.Preview = {
 
           const activeTabId = Riptide.Tabs ? Riptide.Tabs.activeTabId : null;
 
-          Riptide.Terminal.sendCommand(result);
+          const sectionEl = preEl.closest('.pb-section');
+          const auditNoteId = sectionEl ? sectionEl.dataset.noteId : null;
+          const auditSection = auditNoteId ? Riptide.Playbooks.sections.get(auditNoteId) : null;
+          Riptide.Terminal.sendCommand(result, {
+            type: 'run',
+            playbookTitle: auditSection ? auditSection.title : '',
+            noteId: auditNoteId || ''
+          });
 
           // Log to command history
           if (activeTabId && Riptide.History) {
             Riptide.History.log(activeTabId, result);
-          }
-
-          // Log to audit trail
-          if (activeTabId && Riptide.AuditLog) {
-            const sectionEl = preEl.closest('.pb-section');
-            const auditNoteId = sectionEl ? sectionEl.dataset.noteId : null;
-            const auditSection = auditNoteId ? Riptide.Playbooks.sections.get(auditNoteId) : null;
-            const tabVars = Riptide.Variables.getEffective();
-            Riptide.AuditLog.log(activeTabId, {
-              playbookTitle: auditSection ? auditSection.title : '',
-              noteId: auditNoteId || '',
-              command: result,
-              variables: tabVars,
-              type: 'run'
-            });
           }
 
           // Inject clipboard-based capture button on this code block

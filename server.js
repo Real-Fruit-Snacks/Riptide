@@ -460,6 +460,9 @@ server.on('upgrade', (request, socket, head) => {
 
 wss.on('connection', (ws) => {
   let ptyKey = null;
+  let wsRoomId = null;
+  let wsTabId = null;
+  let wsNickname = null;
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
   let msgCount = 0;
@@ -492,6 +495,9 @@ wss.on('connection', (ws) => {
         const tabId = msg.tabId;
         const subTabId = msg.subTabId || '0';
         ptyKey = roomId + ':' + tabId + ':' + subTabId;
+        wsRoomId = roomId;
+        wsTabId = tabId;
+        wsNickname = session.nickname;
 
         // Validate that the tab exists in this room
         const data = await storage.readRoomTabs(roomId);
@@ -527,7 +533,7 @@ wss.on('connection', (ws) => {
             env: safeEnv
           });
 
-          const entry = { pty: ptyProcess, clients: new Set(), buffer: [], bufferSize: 0 };
+          const entry = { pty: ptyProcess, clients: new Set(), buffer: [], bufferSize: 0, inputBuf: '' };
           ptyProcesses.set(ptyKey, entry);
           // Maintain secondary index
           if (!roomPtyKeys.has(roomId)) roomPtyKeys.set(roomId, new Set());
@@ -582,6 +588,51 @@ wss.on('connection', (ws) => {
       switch (msg.type) {
         case 'input':
           entry.pty.write(msg.data);
+          // Buffer typed input for audit logging
+          if (wsRoomId && wsTabId && wsNickname) {
+            for (const ch of msg.data) {
+              if (ch === '\r') {
+                const cmd = entry.inputBuf.trim();
+                if (cmd) {
+                  const auditEntry = {
+                    id: require('crypto').randomBytes(8).toString('hex'),
+                    user: wsNickname,
+                    command: cmd,
+                    playbookTitle: '',
+                    noteId: '',
+                    type: 'typed',
+                    timestamp: new Date().toISOString()
+                  };
+                  storage.atomicUpdateRoomTabs(wsRoomId, (data) => {
+                    const tab = data.tabs.find(t => t.id === wsTabId);
+                    if (tab) {
+                      if (!tab.auditLog) tab.auditLog = [];
+                      tab.auditLog.push(auditEntry);
+                      if (tab.auditLog.length > LIMITS.MAX_AUDIT_ENTRIES) {
+                        tab.auditLog = tab.auditLog.slice(-LIMITS.MAX_AUDIT_ENTRIES);
+                      }
+                    }
+                  }).then(() => {
+                    broadcastToRoom(wsRoomId, { type: 'audit-logged', tabId: wsTabId, entry: auditEntry });
+                  }).catch(() => {});
+                }
+                entry.inputBuf = '';
+              } else if (ch === '\x1b') {
+                entry._skipEsc = true;
+              } else if (entry._skipEsc) {
+                // End of escape sequence on letter
+                if (/[a-zA-Z~]/.test(ch)) entry._skipEsc = false;
+              } else if (ch === '\x7f' || ch === '\b') {
+                entry.inputBuf = entry.inputBuf.slice(0, -1);
+              } else if (ch === '\x03') {
+                entry.inputBuf = '';
+              } else if (ch === '\t') {
+                // Tab completion — ignore
+              } else if (ch.charCodeAt(0) >= 32) {
+                entry.inputBuf += ch;
+              }
+            }
+          }
           break;
         case 'resize':
           entry.pty.resize(

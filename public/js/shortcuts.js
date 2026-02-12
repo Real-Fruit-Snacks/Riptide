@@ -140,7 +140,7 @@ Riptide.Shortcuts = {
     // Send and log
     const tabId = Riptide.Tabs ? Riptide.Tabs.activeTabId : null;
 
-    Riptide.Terminal.sendCommand(result);
+    Riptide.Terminal.sendCommand(result, { type: 'shortcut' });
 
     if (tabId && Riptide.History) {
       Riptide.History.log(tabId, result);
